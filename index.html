@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -224,7 +224,7 @@ async function loadSets(){
     const card = el(`<button class="card" ${s.locked?"disabled":""}>
       <div class="row"><span class="name">${esc(s.name)}</span>
       <span class="pill ${s.locked?"locked":"open"}">${s.locked?"Locked":"Spots left: "+(s.capacity-s.filled)}</span></div>
-      <div class="sub">${s.filled} / ${s.capacity}claimed</div>
+      <div class="sub">${s.filled} / ${s.capacity} claimed</div>
       <div class="bar"><i style="width:${pct}%"></i></div></button>`);
     if(!s.locked){ card.onclick=()=>{ state.set={id:s.id,name:s.name}; loadSet(); }; }
     list.appendChild(card);
@@ -259,10 +259,10 @@ function openClaim(member){
   const area = document.getElementById("claimArea");
   area.innerHTML="";
   const f = el(`<div class="panel">
-    <h3>Claim「${esc(member)}」· ${esc(state.store.name)}</h3>
+    <h3>Claim"${esc(member)}"· ${esc(state.store.name)}</h3>
     <label>Your name *</label><input id="f_name" autocomplete="name" />
     <label>Instagram (optional)</label><input id="f_ig" placeholder="@yourhandle" />
-    <label>Email *(to confirm your order)</label><input id="f_email" type="email" autocomplete="email" />
+    <label>Email * (to confirm your order)</label><input id="f_email" type="email" autocomplete="email" />
     <button class="btn primary" id="f_submit">Confirm claim</button>
     <div id="f_msg"></div>
   </div>`);
