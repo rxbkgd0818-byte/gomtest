@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
 <style>
-  /* === 设计令牌 === */
+  /* === design tokens === */
   :root{
     --bg:#FBFAF7; --surface:#FFFFFF; --ink:#16161A; --muted:#6B6860;
     --line:#E8E4DB; --accent:#4B47E0; --accent-soft:#ECECFB;
@@ -28,12 +28,12 @@
   .adminlink{background:none; border:none; color:var(--muted); font-size:13px; cursor:pointer; padding:4px}
   .adminlink:hover{color:var(--ink)}
 
-  /* 面包屑 */
+  /* breadcrumbs */
   .crumbs{display:flex; flex-wrap:wrap; align-items:center; gap:6px; font-size:13px; color:var(--muted); margin-bottom:16px; min-height:18px}
   .crumbs button{background:none; border:none; color:var(--accent); cursor:pointer; padding:0; font:inherit}
   .crumbs span.sep{color:var(--line)}
 
-  /* 卡片列表 */
+  /* card list */
   .list{display:flex; flex-direction:column; gap:10px}
   .card{
     background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
@@ -50,11 +50,11 @@
   .pill.locked{background:#F1EFEA; color:var(--muted)}
   .pill.cat{background:#F1EFEA; color:var(--muted)}
 
-  /* 进度条 */
+  /* progress bar */
   .bar{height:6px; background:#F0EDE6; border-radius:999px; margin-top:12px; overflow:hidden}
   .bar > i{display:block; height:100%; background:var(--accent); border-radius:999px}
 
-  /* set 名额网格 */
+  /* set slot grid */
   .grid{display:grid; grid-template-columns:repeat(2,1fr); gap:10px}
   .slot{
     border:1px solid var(--line); border-radius:12px; padding:13px 14px; background:var(--surface);
@@ -66,7 +66,7 @@
   .slot.taken{background:#F7F5F0; cursor:default; border-style:dashed}
   .slot.taken:hover{border-color:var(--line)}
 
-  /* claim 表单 */
+  /* claim form */
   .panel{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:18px; box-shadow:var(--shadow); margin-top:14px}
   .panel h3{margin:0 0 12px; font-family:'Space Grotesk',sans-serif; font-size:17px}
   label{display:block; font-size:13px; color:var(--muted); margin:10px 0 5px}
@@ -83,7 +83,7 @@
   .empty{color:var(--muted); text-align:center; padding:40px 0; font-size:14px}
   .loading{color:var(--muted); text-align:center; padding:40px 0; font-size:14px}
 
-  /* 后台 */
+  /* admin */
   .buyer{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:16px; box-shadow:var(--shadow); margin-bottom:12px}
   .buyer .bh{display:flex; justify-content:space-between; align-items:flex-start; gap:10px}
   .buyer .who{font-weight:600}
@@ -105,27 +105,27 @@
 <div class="wrap">
   <header class="top">
     <h1 id="title">Group Order</h1>
-    <button class="adminlink" id="adminToggle">管理后台</button>
+    <button class="adminlink" id="adminToggle">Admin</button>
   </header>
 
   <div class="crumbs" id="crumbs"></div>
-  <div id="view"><div class="loading">载入中…</div></div>
+  <div id="view"><div class="loading">Loading…</div></div>
 </div>
 
 <script>
 /* =========================================================
-   ⬇️ 唯一需要你改的地方：把下面引号里换成你的 Apps Script /exec 网址
+   ⬇️ The only thing you need to change: put your Apps Script /exec URL in the quotes below
    ========================================================= */
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx9hrFqjCw1TjPiY9jtLmJv_rsKezvguI1N19zj9Zy-o5g6daEtCjJT8manL4TVaDXN/exec";
 
-/* --------------- 与后端通信（CORS 友好） --------------- */
+/* --------------- backend communication (CORS friendly) --------------- */
 async function apiGet(params){
   const url = APPS_SCRIPT_URL + "?" + new URLSearchParams(params).toString();
   const r = await fetch(url);
   return r.json();
 }
 async function apiPost(payload){
-  // 用 text/plain 避免浏览器对 Apps Script 发预检请求（否则会被 CORS 拦）
+  // use text/plain to avoid the browser sending a preflight to Apps Script (otherwise blocked by CORS)
   const r = await fetch(APPS_SCRIPT_URL, {
     method:"POST",
     headers:{ "Content-Type":"text/plain;charset=utf-8" },
@@ -134,7 +134,7 @@ async function apiPost(payload){
   return r.json();
 }
 
-/* --------------- 全局状态 --------------- */
+/* --------------- global state --------------- */
 let CURRENCY = "¥";
 let state = { view:"campaigns", campaign:null, store:null, set:null };
 const view = document.getElementById("view");
@@ -144,12 +144,12 @@ function el(html){ const t=document.createElement("template"); t.innerHTML=html.
 function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
 function money(n){ return CURRENCY + (Math.round((Number(n)||0)*100)/100); }
 
-/* --------------- 面包屑 --------------- */
+/* --------------- breadcrumbs --------------- */
 function renderCrumbs(){
   crumbsEl.innerHTML = "";
-  if(state.view==="admin"){ crumbsEl.appendChild(el(`<button data-go="campaigns">← 返回 claim 页面</button>`)); bindCrumbs(); return; }
+  if(state.view==="admin"){ crumbsEl.appendChild(el(`<button data-go="campaigns">← Back</button>`)); bindCrumbs(); return; }
   const parts=[];
-  parts.push(`<button data-go="campaigns">全部团</button>`);
+  parts.push(`<button data-go="campaigns">All Group Orders</button>`);
   if(state.campaign){ parts.push(`<span class="sep">/</span><button data-go="stores">${esc(state.campaign.name)}</button>`); }
   if(state.store){ parts.push(`<span class="sep">/</span><button data-go="sets">${esc(state.store.name)}</button>`); }
   if(state.set){ parts.push(`<span class="sep">/</span><span>${esc(state.set.name)}</span>`); }
@@ -166,10 +166,10 @@ function bindCrumbs(){
   });
 }
 
-/* --------------- 各级页面 --------------- */
+/* --------------- views --------------- */
 async function loadConfig(){
   if(APPS_SCRIPT_URL.startsWith("PASTE_")){
-    view.innerHTML = `<div class="note err">还没接上后端：请打开 index.html，把 APPS_SCRIPT_URL 换成你的 Apps Script 网址。</div>`;
+    view.innerHTML = `<div class="note err">Backend not connected: open index.html and set APPS_SCRIPT_URL to your Apps Script URL.</div>`;
     return false;
   }
   try{
@@ -178,16 +178,16 @@ async function loadConfig(){
     if(c.currency) CURRENCY=c.currency;
     return true;
   }catch(e){
-    view.innerHTML = `<div class="note err">连不上后端，检查网址是否正确、是否已部署为「任何人」可访问。</div>`;
+    view.innerHTML = `<div class="note err">Cannot reach the backend. Check the URL is correct and deployed with access set to "Anyone".</div>`;
     return false;
   }
 }
 
 async function loadCampaigns(){
-  state.view="campaigns"; renderCrumbs(); view.innerHTML=`<div class="loading">载入中…</div>`;
+  state.view="campaigns"; renderCrumbs(); view.innerHTML=`<div class="loading">Loading…</div>`;
   const res = await apiGet({action:"campaigns"});
   if(!res.ok){ return showErr(res.error); }
-  if(!res.campaigns.length){ view.innerHTML=`<div class="empty">现在没有进行中的团。</div>`; return; }
+  if(!res.campaigns.length){ view.innerHTML=`<div class="empty">No active group orders right now.</div>`; return; }
   const list = el(`<div class="list"></div>`);
   res.campaigns.forEach(c=>{
     const card = el(`<button class="card"><div class="row"><span class="name">${esc(c.name)}</span>${c.category?`<span class="pill cat">${esc(c.category)}</span>`:""}</div></button>`);
@@ -198,10 +198,10 @@ async function loadCampaigns(){
 }
 
 async function loadStores(){
-  state.view="stores"; renderCrumbs(); view.innerHTML=`<div class="loading">载入中…</div>`;
+  state.view="stores"; renderCrumbs(); view.innerHTML=`<div class="loading">Loading…</div>`;
   const res = await apiGet({action:"stores", campaignId:state.campaign.id});
   if(!res.ok){ return showErr(res.error); }
-  if(!res.stores.length){ view.innerHTML=`<div class="empty">这个团还没有店家。</div>`; return; }
+  if(!res.stores.length){ view.innerHTML=`<div class="empty">No shops in this group order yet.</div>`; return; }
   const list = el(`<div class="list"></div>`);
   res.stores.forEach(s=>{
     const card = el(`<button class="card">
@@ -214,17 +214,17 @@ async function loadStores(){
 }
 
 async function loadSets(){
-  state.view="sets"; renderCrumbs(); view.innerHTML=`<div class="loading">载入中…</div>`;
+  state.view="sets"; renderCrumbs(); view.innerHTML=`<div class="loading">Loading…</div>`;
   const res = await apiGet({action:"sets", storeId:state.store.id});
   if(!res.ok){ return showErr(res.error); }
-  if(!res.sets.length){ view.innerHTML=`<div class="empty">这个店家还没有 set。</div>`; return; }
+  if(!res.sets.length){ view.innerHTML=`<div class="empty">No sets for this shop yet.</div>`; return; }
   const list = el(`<div class="list"></div>`);
   res.sets.forEach(s=>{
     const pct = Math.round(100*s.filled/s.capacity);
     const card = el(`<button class="card" ${s.locked?"disabled":""}>
       <div class="row"><span class="name">${esc(s.name)}</span>
-      <span class="pill ${s.locked?"locked":"open"}">${s.locked?"已锁定":"还差 "+(s.capacity-s.filled)}</span></div>
-      <div class="sub">${s.filled} / ${s.capacity} 已 claim</div>
+      <span class="pill ${s.locked?"locked":"open"}">${s.locked?"Locked":"Spots left: "+(s.capacity-s.filled)}</span></div>
+      <div class="sub">${s.filled} / ${s.capacity}claimed</div>
       <div class="bar"><i style="width:${pct}%"></i></div></button>`);
     if(!s.locked){ card.onclick=()=>{ state.set={id:s.id,name:s.name}; loadSet(); }; }
     list.appendChild(card);
@@ -233,18 +233,18 @@ async function loadSets(){
 }
 
 async function loadSet(){
-  state.view="set"; renderCrumbs(); view.innerHTML=`<div class="loading">载入中…</div>`;
+  state.view="set"; renderCrumbs(); view.innerHTML=`<div class="loading">Loading…</div>`;
   const res = await apiGet({action:"set", setId:state.set.id});
   if(!res.ok){ return showErr(res.error); }
   state.set.name = res.name;
   const container = el(`<div></div>`);
-  if(res.locked) container.appendChild(el(`<div class="note ok">这个 set 已满并锁定。</div>`));
+  if(res.locked) container.appendChild(el(`<div class="note ok">This set is full and locked.</div>`));
   const grid = el(`<div class="grid"></div>`);
   res.slots.forEach(slot=>{
     if(slot.taken){
-      grid.appendChild(el(`<div class="slot taken"><div class="m">${esc(slot.member)}</div><div class="s">已被 ${esc(slot.by)} claim</div></div>`));
+      grid.appendChild(el(`<div class="slot taken"><div class="m">${esc(slot.member)}</div><div class="s">Claimed by ${esc(slot.by)} claim</div></div>`));
     }else{
-      const s = el(`<button class="slot"><div class="m">${esc(slot.member)}</div><div class="s">点这里 claim →</div></button>`);
+      const s = el(`<button class="slot"><div class="m">${esc(slot.member)}</div><div class="s">Tap to claim →</div></button>`);
       s.onclick=()=>openClaim(slot.member);
       grid.appendChild(s);
     }
@@ -254,16 +254,16 @@ async function loadSet(){
   view.innerHTML=""; view.appendChild(container);
 }
 
-/* --------------- claim 表单 --------------- */
+/* --------------- claim form --------------- */
 function openClaim(member){
   const area = document.getElementById("claimArea");
   area.innerHTML="";
   const f = el(`<div class="panel">
     <h3>Claim「${esc(member)}」· ${esc(state.store.name)}</h3>
-    <label>你的名字 *</label><input id="f_name" autocomplete="name" />
-    <label>Instagram（选填）</label><input id="f_ig" placeholder="@yourhandle" />
-    <label>邮箱 *（用来联系你确认订单）</label><input id="f_email" type="email" autocomplete="email" />
-    <button class="btn primary" id="f_submit">确认 claim</button>
+    <label>Your name *</label><input id="f_name" autocomplete="name" />
+    <label>Instagram (optional)</label><input id="f_ig" placeholder="@yourhandle" />
+    <label>Email *(to confirm your order)</label><input id="f_email" type="email" autocomplete="email" />
+    <button class="btn primary" id="f_submit">Confirm claim</button>
     <div id="f_msg"></div>
   </div>`);
   area.appendChild(f);
@@ -278,20 +278,20 @@ async function submitClaim(member){
   const ig=document.getElementById("f_ig").value.trim();
   const email=document.getElementById("f_email").value.trim();
   msg.innerHTML="";
-  if(!name){ msg.innerHTML=`<div class="note err">请填写名字。</div>`; return; }
-  if(!email||email.indexOf("@")<0){ msg.innerHTML=`<div class="note err">请填写有效邮箱。</div>`; return; }
-  btn.disabled=true; btn.textContent="提交中…";
+  if(!name){ msg.innerHTML=`<div class="note err">Please enter your name.</div>`; return; }
+  if(!email||email.indexOf("@")<0){ msg.innerHTML=`<div class="note err">Please enter a valid email.</div>`; return; }
+  btn.disabled=true; btn.textContent="Submitting…";
   const res = await apiPost({action:"claim", setId:state.set.id, member, buyerName:name, buyerIG:ig, buyerEmail:email});
   if(res.ok){
-    msg.innerHTML=`<div class="note ok">claim 成功！${res.locked?"这个 set 现在满了，已锁定。":""}</div>`;
+    msg.innerHTML=`<div class="note ok">Claim successful!${res.locked?"This set is now full and locked.":""}</div>`;
     setTimeout(loadSet, 900);
   }else{
-    btn.disabled=false; btn.textContent="确认 claim";
-    msg.innerHTML=`<div class="note err">${esc(res.error||"出错了，再试一次")}</div>`;
+    btn.disabled=false; btn.textContent="Confirm claim";
+    msg.innerHTML=`<div class="note err">${esc(res.error||"Something went wrong, please try again")}</div>`;
   }
 }
 
-/* --------------- 管理后台（只读汇总，不发任何通知） --------------- */
+/* --------------- Admin（read-only summary, sends no notifications） --------------- */
 document.getElementById("adminToggle").onclick=()=>openAdmin();
 
 function openAdmin(){
@@ -299,10 +299,10 @@ function openAdmin(){
   const saved = sessionStorage.getItem("gom_pc") || "";
   view.innerHTML="";
   const p = el(`<div class="panel">
-    <h3>管理后台</h3>
-    <label>管理员口令（在 Config 表里设置）</label>
+    <h3>Admin</h3>
+    <label>Admin passcode (set in the Config sheet)</label>
     <input id="pc" type="password" value="${esc(saved)}" />
-    <button class="btn primary" id="pc_go">进入</button>
+    <button class="btn primary" id="pc_go">Enter</button>
     <div id="pc_msg"></div>
   </div>`);
   view.appendChild(p);
@@ -313,11 +313,11 @@ function openAdmin(){
 async function loadAdmin(){
   const pc=document.getElementById("pc").value.trim();
   const msg=document.getElementById("pc_msg");
-  if(!pc){ msg.innerHTML=`<div class="note err">请输入口令。</div>`; return; }
-  msg.innerHTML=`<div class="loading">载入中…</div>`;
+  if(!pc){ msg.innerHTML=`<div class="note err">Please enter the passcode.</div>`; return; }
+  msg.innerHTML=`<div class="loading">Loading…</div>`;
   const res = await apiGet({action:"summary", passcode:pc});
   if(!res.ok){
-    msg.innerHTML=`<div class="note err">${res.error==="wrong-passcode"?"口令不对。":esc(res.error)}</div>`;
+    msg.innerHTML=`<div class="note err">${res.error==="wrong-passcode"?"Incorrect passcode.":esc(res.error)}</div>`;
     return;
   }
   sessionStorage.setItem("gom_pc", pc);
@@ -327,25 +327,25 @@ async function loadAdmin(){
 
 function renderAdmin(res){
   view.innerHTML="";
-  const bar = el(`<div class="toolbar"><button class="btn ghost" id="refreshBtn">刷新</button></div>`);
+  const bar = el(`<div class="toolbar"><button class="btn ghost" id="refreshBtn">Refresh</button></div>`);
   view.appendChild(bar);
   document.getElementById("refreshBtn").onclick=loadAdmin;
 
-  if(!res.buyers.length){ view.appendChild(el(`<div class="empty">还没有任何 claim。</div>`)); return; }
+  if(!res.buyers.length){ view.appendChild(el(`<div class="empty">No claims yet.</div>`)); return; }
 
   res.buyers.forEach(b=>{
     const due = b.outstanding>0;
     const items = b.items.map(it=>`<div><span>${esc(it.campaign)} · ${esc(it.store)} · ${esc(it.member)}</span><span>${money(it.price)}</span></div>`).join("");
-    const charges = b.charges.map(ch=>`<div><span>${esc(ch.label)} ${ch.paid?"":"（未付）"}</span><span>${money(ch.amount)}</span></div>`).join("");
+    const charges = b.charges.map(ch=>`<div><span>${esc(ch.label)} ${ch.paid?"":"(unpaid)"}</span><span>${money(ch.amount)}</span></div>`).join("");
     const tags = [];
-    tags.push(`<span class="tag ${b.productPaid?"paid":"unpaid"}">产品${b.productPaid?"已付":"未付"}</span>`);
-    b.charges.forEach(ch=>tags.push(`<span class="tag ${ch.paid?"paid":"unpaid"}">${esc(ch.label)}${ch.paid?"已付":"未付"}</span>`));
+    tags.push(`<span class="tag ${b.productPaid?"paid":"unpaid"}">Product ${b.productPaid?"paid":"unpaid"}</span>`);
+    b.charges.forEach(ch=>tags.push(`<span class="tag ${ch.paid?"paid":"unpaid"}">${esc(ch.label)}${ch.paid?"paid":"unpaid"}</span>`));
 
     const card = el(`<div class="buyer">
       <div class="bh">
         <div class="who">${esc(b.name||b.email)}<small>${esc(b.email)}${b.ig?" · "+esc(b.ig):""}</small></div>
-        <div class="owe"><div class="amt ${due?"due":"clear"}">${due?money(b.outstanding):"已结清"}</div>
-        <small style="color:var(--muted)">总额 ${money(b.grandTotal)}</small></div>
+        <div class="owe"><div class="amt ${due?"due":"clear"}">${due?money(b.outstanding):"Paid in full"}</div>
+        <small style="color:var(--muted)">Total ${money(b.grandTotal)}</small></div>
       </div>
       <div class="items">${items}${charges}</div>
       <div class="tags">${tags.join("")}</div>
@@ -354,9 +354,9 @@ function renderAdmin(res){
   });
 }
 
-function showErr(e){ view.innerHTML=`<div class="note err">${esc(e||"出错了")}</div>`; }
+function showErr(e){ view.innerHTML=`<div class="note err">${esc(e||"Something went wrong")}</div>`; }
 
-/* --------------- 启动 --------------- */
+/* --------------- startup --------------- */
 (async function(){
   const ok = await loadConfig();
   if(ok) loadCampaigns();
