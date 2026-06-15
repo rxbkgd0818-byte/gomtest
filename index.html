@@ -260,8 +260,7 @@ function openClaim(member){
   area.innerHTML="";
   const f = el(`<div class="panel">
     <h3>Claim"${esc(member)}"· ${esc(state.store.name)}</h3>
-    <label>Your name *</label><input id="f_name" autocomplete="name" />
-    <label>Instagram (optional)</label><input id="f_ig" placeholder="@yourhandle" />
+    <label>Instagram *</label><input id="f_ig" placeholder="@yourhandle" />
     <label>Email * (to confirm your order)</label><input id="f_email" type="email" autocomplete="email" />
     <button class="btn primary" id="f_submit">Confirm claim</button>
     <div id="f_msg"></div>
@@ -274,14 +273,14 @@ function openClaim(member){
 async function submitClaim(member){
   const btn=document.getElementById("f_submit");
   const msg=document.getElementById("f_msg");
-  const name=document.getElementById("f_name").value.trim();
+  
   const ig=document.getElementById("f_ig").value.trim();
   const email=document.getElementById("f_email").value.trim();
   msg.innerHTML="";
-  if(!name){ msg.innerHTML=`<div class="note err">Please enter your name.</div>`; return; }
+  if(!ig){ msg.innerHTML=`<div class="note err">Please enter your Instagram.</div>`; return; }
   if(!email||email.indexOf("@")<0){ msg.innerHTML=`<div class="note err">Please enter a valid email.</div>`; return; }
   btn.disabled=true; btn.textContent="Submitting…";
-  const res = await apiPost({action:"claim", setId:state.set.id, member, buyerName:name, buyerIG:ig, buyerEmail:email});
+  const res = await apiPost({action:"claim", setId:state.set.id, member, buyerName:ig, buyerIG:ig, buyerEmail:email});
   if(res.ok){
     msg.innerHTML=`<div class="note ok">Claim successful!${res.locked?"This set is now full and locked.":""}</div>`;
     setTimeout(loadSet, 900);
